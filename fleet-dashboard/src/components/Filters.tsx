@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { FILTER_BTNS, type FilterKey } from "../constants/filter";
 import StatCard from "./StatCard";
+import UpdateStatus from "./UpdateStatus";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 
@@ -32,13 +33,14 @@ interface FiltersProps {
   setFilter: (filter: FilterKey) => void;
   stats?: FleetStats;
   isLoading: boolean;
+  lastWsTimestamp: string | null;
 }
 
 
 /* ─────────────────────────────────────────────
    Component
 ───────────────────────────────────────────── */
-const Filters = ({ filter, setFilter, stats, isLoading }: FiltersProps) => {
+const Filters = ({ filter, setFilter, stats, isLoading, lastWsTimestamp }: FiltersProps) => {
   const safeStats: FleetStats = stats ?? {
     total: 0,
     idle: 0,
@@ -140,6 +142,8 @@ const Filters = ({ filter, setFilter, stats, isLoading }: FiltersProps) => {
   />
 </div>
       </div>
+
+      <UpdateStatus lastUpdated={lastWsTimestamp ?? new Date().toISOString()} />
     </div>
   );
 };

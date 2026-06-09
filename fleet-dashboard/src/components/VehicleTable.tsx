@@ -117,7 +117,7 @@ const VehicleTable: React.FC<Props> = ({
       onChange={(e) => onRowsPerPageChange?.(Number(e.target.value))}
       className="appearance-none text-sm pl-2.5 pr-7 py-1.0 border border-gray-300 rounded-md bg-white text-gray-900 cursor-pointer outline-none text-[14px]"
     >
-      {[5, 10, 20, 50].map((size) => (
+      {[5, 10, 15, 20, 25].map((size) => (
         <option key={size} value={size}>
           {size}
         </option>

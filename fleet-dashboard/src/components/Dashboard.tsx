@@ -1,12 +1,11 @@
-import React, { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 import StatusBadge from "../components/Badge";
 import Heading from "../components/Heading";
 import Filters from "../components/Filters";
-import { STATUS_MAP } from "../constants/status";
 import VehicleTable from "./VehicleTable";
 import VehicleModal from "../components/VehicleModal";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import getStatistics from "../apis/getStatistics";
 import getVehicleList from "../apis/getVehicleList";
 import getVehicleDetail from "../apis/getVehicleDetail";
@@ -16,10 +15,15 @@ import getVehicleDetail from "../apis/getVehicleDetail";
 /* ── Dashboard ────────────────────────────────────────────────── */
 
 export default function FleetDashboard() {
+
+  const queryClient = useQueryClient();
+const wsRef = useRef<WebSocket | null>(null);
+
   const [selectedVehicleId, setVehicleId] = useState(null);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
+  const [lastWsTimestamp, setLastWsTimestamp] = useState<string | null>(null);
   const [tableFilter, setTableFilter]= useState({
-    "limit": 10,
+    "limit": 25,
     "status": "total"
   });
   const { data: stats, isLoading: isStatsLoading } = useQuery({
@@ -27,11 +31,108 @@ export default function FleetDashboard() {
     queryFn: getStatistics,
   });
 
-  const { data: vehicles = [], isLoading: isVehiclesLoading } = useQuery({
-  queryKey: ["vehicles", tableFilter], // 👈 KEY CHANGE
+  const { data: vehicles = [], isLoading: isVehiclesLoading, isSuccess: isVehiclesSuccess, isFetching: isVehiclesFetching,   } = useQuery({
+  queryKey: ["vehicles", tableFilter.status, tableFilter.limit],
    queryFn: () => getVehicleList(tableFilter),
 });
 
+const vehicleQueryKey = ["vehicles", tableFilter.status, tableFilter.limit];
+
+useEffect(() => {
+
+  if(!isVehiclesSuccess) return;
+  let ws: WebSocket | null = null;
+  let intervalId: NodeJS.Timeout;
+
+  const connect = () => {
+    ws = new WebSocket("wss://case-study-26cf.onrender.com/api/vehicles");
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      console.log("WebSocket connected");
+    };
+
+   ws.onmessage = (event) => {
+  const message = JSON.parse(event.data);
+  console.log("WS MESSAGE:", message);
+
+   if (message.timestamp) {
+    setLastWsTimestamp(message.timestamp);
+  }
+
+  if (message.type === "VEHICLE_UPDATE") {
+    const updated = message.payload;
+
+    if (tableFilter.limit >= 25) {
+      // all vehicles in cache → always update in-place
+      queryClient.setQueryData(vehicleQueryKey, (old: any[] = []) =>
+        old.map((v) =>
+          v.vehicleNumber === updated.vehicleNumber ? { ...v, ...updated } : v
+        )
+      );
+    } else {
+      // partial page → check if vehicle is visible
+      const currentData = queryClient.getQueryData(vehicleQueryKey) as any[] || [];
+      const existsInView = currentData.some(
+        (v) => v.vehicleNumber === updated.vehicleNumber
+      );
+
+      if (existsInView) {
+        queryClient.setQueryData(vehicleQueryKey, (old: any[] = []) =>
+          old.map((v) =>
+            v.vehicleNumber === updated.vehicleNumber ? { ...v, ...updated } : v
+          )
+        );
+      } else {
+        queryClient.invalidateQueries({ queryKey: vehicleQueryKey });
+      }
+    }
+  }
+
+  if (message.type === "VEHICLE_CREATE") {
+    const newVehicle = message.payload;
+    queryClient.setQueryData(vehicleQueryKey, (old: any[] = []) => [
+      newVehicle,
+      ...old,
+    ]);
+  }
+
+  if (message.type === "VEHICLE_DELETE") {
+    const id = message.payload.vehicleNumber;
+    queryClient.setQueryData(vehicleQueryKey, (old: any[] = []) =>
+      old.filter((v) => v.vehicleNumber !== id)
+    );
+  }
+};
+
+    ws.onerror = (err) => {
+      console.error("WebSocket error:", err);
+    };
+
+    ws.onclose = () => {
+      console.log("WebSocket disconnected");
+    };
+  };
+
+  // initial connect
+  connect();
+
+  // reconnect every 10 seconds
+  intervalId = setInterval(() => {
+    console.log("Reconnecting WebSocket...");
+
+    if (ws) {
+      ws.close();
+    }
+
+    connect();
+  }, 10000);
+
+  return () => {
+    if (ws) ws.close();
+    clearInterval(intervalId);
+  };
+}, [isVehiclesSuccess]);
 
 console.log('vehicles',isVehiclesLoading, vehicles)
 
@@ -112,6 +213,7 @@ const { mutate: fetchVehicle, isPending: isFetchingVehicle } = useMutation({
     }))
   }}
   isLoading={isStatsLoading}
+  lastWsTimestamp={lastWsTimestamp}
 />
     </div>
 
@@ -183,7 +285,7 @@ const { mutate: fetchVehicle, isPending: isFetchingVehicle } = useMutation({
         ),
       },
     ]}
-    isLoading={isVehiclesLoading}
+    isLoading={isVehiclesLoading || isVehiclesFetching}
     rowsPerPage={tableFilter.limit}
   onRowsPerPageChange={(limit) =>
     setTableFilter((prev) => ({
