@@ -1,6 +1,6 @@
 export const FILTER_BTNS = [
   {
-    key: "all",
+    key: "total",
     label: "All",
     borderClass: "border-blue-500 text-blue-700",
     dotClass: "bg-blue-500",
@@ -12,7 +12,7 @@ export const FILTER_BTNS = [
     dotClass: "bg-green-500",
   },
   {
-    key: "enroute",
+    key: "en_route",
     label: "En Route",
     borderClass: "border-amber-500 text-amber-700",
     dotClass: "bg-amber-500",

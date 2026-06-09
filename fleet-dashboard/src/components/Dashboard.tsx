@@ -6,54 +6,78 @@ import Filters from "../components/Filters";
 import { STATUS_MAP } from "../constants/status";
 import VehicleTable from "./VehicleTable";
 import VehicleModal from "../components/VehicleModal";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import getStatistics from "../apis/getStatistics";
+import getVehicleList from "../apis/getVehicleList";
+import getVehicleDetail from "../apis/getVehicleDetail";
 
-export const vehicles = [
-  { id: "FL-001", driver: "John Smith", status: "delivered", speed: "0 mph", dest: "Residential Complex A", eta: "—", updated: "19/08/2025 14:40", coords: "37.7579, -122.4349", phone: "+12493369604", battery: 30, fuel: 44 },
-  { id: "FL-002", driver: "Maria Garcia", status: "delivered", speed: "12 mph", dest: "Federal Downtown", eta: "5 min", updated: "19/08/2025 14:41", coords: "37.7945, -122.4033", phone: "+14153456789", battery: 72, fuel: 61 },
-  { id: "FL-003", driver: "David Chen", status: "idle", speed: "0 mph", dest: "University Campus", eta: "—", updated: "19/08/2025 14:39", coords: "37.8624, -122.4695", phone: "+15105551234", battery: 88, fuel: 75 },
-  { id: "FL-004", driver: "Sarah Johnson", status: "delivered", speed: "22 mph", dest: "Industrial District", eta: "8 min", updated: "19/08/2025 14:42", coords: "37.8053, -122.4893", phone: "+14153451122", battery: 45, fuel: 52 },
-  { id: "FL-005", driver: "Michael Brown", status: "moving", speed: "35 mph", dest: "Warehouse District", eta: "15 min", updated: "19/08/2025 14:43", coords: "37.7968, -122.3305", phone: "+14153452233", battery: 60, fuel: 38 },
-
-  { id: "FL-006", driver: "Lisa Wang", status: "idle", speed: "0 mph", dest: "Sports Stadium", eta: "—", updated: "19/08/2025 14:40", coords: "37.8045, -122.3098", phone: "+14153453344", battery: 91, fuel: 83 },
-  { id: "FL-007", driver: "Robert Davis", status: "moving", speed: "28 mph", dest: "Warehouse District", eta: "10 min", updated: "19/08/2025 14:44", coords: "37.7988, -122.3477", phone: "+14153454455", battery: 55, fuel: 67 },
-  { id: "FL-008", driver: "Jennifer Wilson", status: "delivered", speed: "0 mph", dest: "Harbor Point", eta: "—", updated: "19/08/2025 14:38", coords: "37.7289, -122.4229", phone: "+14153455566", battery: 33, fuel: 29 },
-  { id: "FL-009", driver: "Carlos Rodriguez", status: "moving", speed: "40 mph", dest: "Airport Zone", eta: "20 min", updated: "19/08/2025 14:45", coords: "37.7447, -122.2316", phone: "+14153456677", battery: 78, fuel: 71 },
-  { id: "FL-010", driver: "Emily Taylor", status: "delivered", speed: "0 mph", dest: "Distribution Center", eta: "—", updated: "19/08/2025 14:41", coords: "37.8451, -122.4461", phone: "+14153457788", battery: 64, fuel: 58 },
-
-  { id: "FL-011", driver: "Kevin Lee", status: "idle", speed: "0 mph", dest: "Industrial District", eta: "—", updated: "19/08/2025 14:39", coords: "37.8775, -122.5314", phone: "+14153458899", battery: 42, fuel: 48 },
-  { id: "FL-012", driver: "Amanda Martinez", status: "moving", speed: "18 mph", dest: "Retail Plaza", eta: "12 min", updated: "19/08/2025 14:42", coords: "37.8092, -122.4229", phone: "+14153459900", battery: 95, fuel: 90 },
-  { id: "FL-013", driver: "Daniel Thompson", status: "idle", speed: "0 mph", dest: "Industrial District", eta: "—", updated: "19/08/2025 14:40", coords: "37.6405, -122.5176", phone: "+14153450011", battery: 20, fuel: 15 },
-  { id: "FL-014", driver: "Olivia Martin", status: "moving", speed: "25 mph", dest: "Tech Park", eta: "9 min", updated: "19/08/2025 14:46", coords: "37.7749, -122.4194", phone: "+14153450112", battery: 68, fuel: 72 },
-  { id: "FL-015", driver: "James Anderson", status: "delivered", speed: "0 mph", dest: "Logistics Hub", eta: "—", updated: "19/08/2025 14:37", coords: "37.7849, -122.4094", phone: "+14153450213", battery: 50, fuel: 60 },
-
-  { id: "FL-016", driver: "Sophia Thomas", status: "moving", speed: "33 mph", dest: "Central Mall", eta: "6 min", updated: "19/08/2025 14:47", coords: "37.7929, -122.3969", phone: "+14153450314", battery: 73, fuel: 80 },
-  { id: "FL-017", driver: "William Harris", status: "idle", speed: "0 mph", dest: "Suburban Area", eta: "—", updated: "19/08/2025 14:38", coords: "37.8123, -122.4789", phone: "+14153450415", battery: 39, fuel: 41 },
-  { id: "FL-018", driver: "Isabella Clark", status: "moving", speed: "27 mph", dest: "Business District", eta: "11 min", updated: "19/08/2025 14:44", coords: "37.7999, -122.4148", phone: "+14153450516", battery: 82, fuel: 77 },
-  { id: "FL-019", driver: "Ethan Lewis", status: "delivered", speed: "0 mph", dest: "Warehouse District", eta: "—", updated: "19/08/2025 14:36", coords: "37.7888, -122.4011", phone: "+14153450617", battery: 58, fuel: 62 },
-  { id: "FL-020", driver: "Mia Walker", status: "moving", speed: "30 mph", dest: "Harbor Bay", eta: "7 min", updated: "19/08/2025 14:48", coords: "37.7601, -122.4477", phone: "+14153450718", battery: 90, fuel: 85 },
-
-  { id: "FL-021", driver: "Benjamin Hall", status: "idle", speed: "0 mph", dest: "Industrial Zone", eta: "—", updated: "19/08/2025 14:39", coords: "37.7712, -122.4312", phone: "+14153450819", battery: 46, fuel: 49 },
-  { id: "FL-022", driver: "Charlotte Allen", status: "moving", speed: "21 mph", dest: "City Center", eta: "13 min", updated: "19/08/2025 14:45", coords: "37.7812, -122.4112", phone: "+14153450920", battery: 77, fuel: 70 },
-  { id: "FL-023", driver: "Henry Young", status: "delivered", speed: "0 mph", dest: "North Dock", eta: "—", updated: "19/08/2025 14:35", coords: "37.7912, -122.4212", phone: "+14153451021", battery: 53, fuel: 57 },
-  { id: "FL-024", driver: "Amelia King", status: "moving", speed: "36 mph", dest: "Highway Route", eta: "18 min", updated: "19/08/2025 14:49", coords: "37.8012, -122.4312", phone: "+14153451122", battery: 84, fuel: 79 },
-  { id: "FL-025", driver: "Jack Wright", status: "idle", speed: "0 mph", dest: "Depot Station", eta: "—", updated: "19/08/2025 14:40", coords: "37.8112, -122.4412", phone: "+14153451223", battery: 62, fuel: 66 },
-];
 
 
 /* ── Dashboard ────────────────────────────────────────────────── */
 
 export default function FleetDashboard() {
-  const [filter,   setFilter]   = useState("all");
-  const [selected, setSelected] = useState(null);
+  const [selectedVehicleId, setVehicleId] = useState(null);
+  const [selectedVehicle, setSelectedVehicle] = useState(null);
+  const [tableFilter, setTableFilter]= useState({
+    "limit": 10,
+    "status": "total"
+  });
+  const { data: stats, isLoading: isStatsLoading } = useQuery({
+    queryKey: ["vehicles", "statistics"],
+    queryFn: getStatistics,
+  });
 
-  const counts = {
-    all:       vehicles.length,
-    delivered: vehicles.filter(v => v.status === "delivered").length,
-    enroute:   vehicles.filter(v => v.status === "enroute").length,
-    idle:      vehicles.filter(v => v.status === "idle").length,
-  };
+  const { data: vehicles = [], isLoading: isVehiclesLoading } = useQuery({
+  queryKey: ["vehicles", tableFilter], // 👈 KEY CHANGE
+   queryFn: () => getVehicleList(tableFilter),
+});
 
-  const filtered = filter === "all" ? vehicles : vehicles.filter(v => v.status === filter);
+
+console.log('vehicles',isVehiclesLoading, vehicles)
+
+const tableData = vehicles?.map((v: any) => ({
+  id: v.vehicleNumber,
+  driver: v.driverName,
+  status: v.status,
+  speed: `${v.speed} km/h`,
+  dest: v.destination,
+  eta: v.estimatedArrival
+    ? new Date(v.estimatedArrival).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "—",
+  updated: new Date(v.lastUpdated).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  }),
+  coords: `${v.currentLocation?.lat?.toFixed(4)}, ${v.currentLocation?.lng?.toFixed(4)}`,
+  raw: v,
+}));
+  
+const { mutate: fetchVehicle, isPending: isFetchingVehicle } = useMutation({
+  mutationFn: async (id: string) => {
+    if (!id) {
+      throw new Error("Vehicle id is required");
+    }
+
+    return getVehicleDetail({ id });
+  },
+
+  onMutate: (id) => {
+    setVehicleId?.(id);
+    setSelectedVehicle?.(null); // optional: reset old data while loading
+  },
+
+  onSuccess: (response) => {
+    console.log("Vehicle detail:", response);
+    setSelectedVehicle?.(response); // optional state update
+  },
+
+  onError: (error) => {
+    console.error("Error fetching vehicle detail:", error);
+  },
+});
 
   return (
     <>
@@ -69,82 +93,106 @@ export default function FleetDashboard() {
     
     {/* LEFT FILTER PANEL (FIXED WIDTH, NO SHRINK) */}
     <div className="w-[35%] mt-4 shrink-0">
-      <Filters
-        filter={filter}
-        setFilter={setFilter}
-        counts={counts}
-      />
+     <Filters
+  stats={
+    stats ?? {
+      total: 0,
+      idle: 0,
+      en_route: 0,
+      delivered: 0,
+      average_speed: 0,
+      timestamp: "",
+    }
+  }
+  filter={tableFilter.status}
+  setFilter={(status) => {
+    setTableFilter((prev) => ({
+      ...prev,
+      status,
+    }))
+  }}
+  isLoading={isStatsLoading}
+/>
     </div>
 
     {/* DIVIDER */}
     <div className="w-px self-stretch bg-gray-200" />
 
     {/* RIGHT TABLE AREA (ALLOWS SCROLL, NO SHRINK ISSUE) */}
+
     <div className="flex-1 min-w-0 mt-2">
-      <VehicleTable
-        title="Vehicles"
-        count={filtered.length}
-        data={filtered}
-        onRowClick={(v) => {
-            console.log(v)
-            setSelected(v)
-        }}
-        columns={[
-          {
-            key: "id",
-            label: "Vehicle",
-            render: (v) => (
-              <span className="text-primary fw-semibold">{v.id}</span>
-            ),
-            width: 100,
-          },
-          {
-            key: "driver",
-            label: "Driver",
-            width: 140,
-          },
-          {
-            key: "status",
-            label: "Status",
-            width: 120,
-            render: (v) => <StatusBadge status={v.status} />,
-          },
-          {
-            key: "speed",
-            label: "Speed",
-            width: 100,
-          },
-          {
-            key: "dest",
-            label: "Destination",
-            width: 180,
-          },
-          {
-            key: "eta",
-            label: "ETA",
-            width: 120,
-          },
-          {
-            key: "updated",
-            label: "Last update",
-            width: 160,
-            render: (v) => (
-              <span className="text-muted" style={{ fontSize: 12 }}>
-                {v.updated}
-              </span>
-            ),
-          },
-          {
-            key: "coords",
-            label: "Location",
-            width: 180,
-            render: (v) => (
-              <span style={{ fontSize: 12 }}>{v.coords}</span>
-            ),
-          },
-        ]}
-      />
-    </div>
+  <VehicleTable
+    title="Vehicles"
+    data={tableData}
+    count={tableData?.length || 0}
+    onRowClick={(v) => {
+      fetchVehicle(v?.raw?.id);
+      setVehicleId(v?.raw?.id)
+    }}
+    columns={[
+      {
+        key: "id",
+        label: "Vehicle",
+        width: 120,
+        render: (v) => (
+          <span className="text-primary fw-semibold">{v.id}</span>
+        ),
+      },
+      {
+        key: "driver",
+        label: "Driver",
+        width: 160,
+      },
+      {
+        key: "status",
+        label: "Status",
+        width: 120,
+        render: (v) => <StatusBadge status={v.status} />,
+      },
+      {
+        key: "speed",
+        label: "Speed",
+        width: 100,
+      },
+      {
+        key: "dest",
+        label: "Destination",
+        width: 200,
+      },
+      {
+        key: "eta",
+        label: "ETA",
+        width: 120,
+      },
+      {
+        key: "updated",
+        label: "Last update",
+        width: 180,
+        render: (v) => (
+          <span className="text-muted" style={{ fontSize: 12 }}>
+            {v.updated}
+          </span>
+        ),
+      },
+      {
+        key: "coords",
+        label: "Location",
+        width: 180,
+        render: (v) => (
+          <span style={{ fontSize: 12 }}>{v.coords}</span>
+        ),
+      },
+    ]}
+    isLoading={isVehiclesLoading}
+    rowsPerPage={tableFilter.limit}
+  onRowsPerPageChange={(limit) =>
+    setTableFilter((prev) => ({
+      ...prev,
+      limit,
+    }))
+  }
+  />
+</div>
   </div>
 </div>
 
@@ -153,8 +201,13 @@ export default function FleetDashboard() {
       </div>
 
     {
-        selected && selected?.id &&
-        <VehicleModal vehicle={selected} onClose={() => setSelected(null)} />
+        selectedVehicleId &&
+        <VehicleModal vehicle={selectedVehicle} onClose={() => {
+          setVehicleId(null);
+          setSelectedVehicle(null);
+        }} 
+        isLoading={isFetchingVehicle}
+        />
     }
       
     </>
