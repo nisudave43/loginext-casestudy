@@ -2,6 +2,10 @@ import { ReactNode } from "react";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 
+/* ─────────────────────────────────────────────
+   Stat Card Props
+   - Reusable KPI/stat display component
+───────────────────────────────────────────── */
 interface StatCardProps {
   value: string | number;
   label: string;
@@ -9,11 +13,21 @@ interface StatCardProps {
   isLoading?: boolean;
 }
 
-const StatCard = ({ value, label, icon, isLoading }: StatCardProps) => {
+/* ─────────────────────────────────────────────
+   StatCard Component
+   - Displays metric value + label + optional icon
+   - Supports skeleton loading state
+───────────────────────────────────────────── */
+const StatCard = ({
+  value,
+  label,
+  icon,
+  isLoading,
+}: StatCardProps) => {
   return (
     <div className="rounded-lg border border-gray-200 p-2 text-center">
       
-      {/* Value */}
+      {/* ── Value Section ── */}
       <div className="text-lg font-semibold text-gray-900">
         {isLoading ? (
           <Skeleton width={40} height={20} />
@@ -22,12 +36,12 @@ const StatCard = ({ value, label, icon, isLoading }: StatCardProps) => {
         )}
       </div>
 
-      {/* Label row (icon ALWAYS visible space preserved) */}
-      <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mt-1 min-h-[16px]">
+      {/* ── Label + Icon Section ── */}
+      <div className="mt-1 flex min-h-[16px] items-center justify-center gap-1 text-xs text-gray-500">
         
-        {/* Icon placeholder always rendered */}
-        <span className="flex items-center justify-center w-3.5 h-3.5">
-          {isLoading ? null : icon}
+        {/* Icon container (keeps layout stable even during loading) */}
+        <span className="flex h-3.5 w-3.5 items-center justify-center">
+          {!isLoading && icon}
         </span>
 
         {/* Label */}

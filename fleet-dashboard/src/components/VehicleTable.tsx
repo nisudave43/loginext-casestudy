@@ -1,8 +1,13 @@
 import React from "react";
+import {ROW_PER_PAGE} from "../constants/config";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { ChevronDown } from "lucide-react";
 
+/* ─────────────────────────────────────────────
+   Table Column Definition
+   - Supports custom render or direct key mapping
+───────────────────────────────────────────── */
 type Column = {
   key: string;
   label: string;
@@ -12,6 +17,9 @@ type Column = {
   width?: string | number;
 };
 
+/* ─────────────────────────────────────────────
+   Table Props
+───────────────────────────────────────────── */
 type Props = {
   title: string;
   count: number;
@@ -20,11 +28,17 @@ type Props = {
   onRowClick?: (row: any) => void;
   isLoading?: boolean;
 
-  // ✅ NEW
+  // pagination control (UI only, not backend pagination here)
   rowsPerPage?: number;
   onRowsPerPageChange?: (value: number) => void;
 };
 
+/* ─────────────────────────────────────────────
+   Vehicle Table Component
+   - Displays fleet list in tabular format
+   - Supports loading skeleton state
+   - Supports row click interaction
+───────────────────────────────────────────── */
 const VehicleTable: React.FC<Props> = ({
   title,
   count,
@@ -35,38 +49,43 @@ const VehicleTable: React.FC<Props> = ({
   rowsPerPage,
   onRowsPerPageChange,
 }) => {
-  const skeletonRows = Array.from({ length: rowsPerPage || 10 });
+  const skeletonRows = Array.from({
+    length: rowsPerPage || 10,
+  });
 
   return (
-    <div className="flex-grow min-w-0 flex flex-col">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-2">
-        <span className="font-semibold text-[15px]">
-          {title}{" "}
-          <span className="text-gray-500 font-normal text-[13px]">
-            ({count})
-          </span>
+    <div className="flex min-w-0 flex-grow flex-col">
+      
+      {/* ───────────────── Header ───────────────── */}
+      <div className="mb-2 flex items-center justify-between">
+        
+        {/* Title + Count */}
+        <span className="text-[15px] font-semibold">
+          {`${title} (${count})`} 
         </span>
 
-        <span className="inline-flex items-center rounded-full border border-gray-200 bg-white px-3 py-1 text-[14px] font-semi-bold text-green-600">
+        {/* Live indicator */}
+        <span className="inline-flex items-center rounded-full border border-gray-200 bg-white px-3 py-1 text-[14px] font-semibold text-green-600">
           Live
         </span>
       </div>
 
-      {/* Table */}
-      <div className="border bg-white rounded overflow-auto max-h-[700px]">
-        <table className="table table-hover table-sm align-middle mb-0 w-full text-[13px]">
-          <thead className="sticky top-0 bg-gray-100 z-10">
-            <tr>
+      {/* ───────────────── Table ───────────────── */}
+      <div className="max-h-[700px] overflow-auto rounded border bg-white">
+        <table className="table table-hover table-sm mb-0 w-full align-middle text-[13px]">
+
+          {/* ── Table Header ── */}
+          <thead className="sticky top-0 z-10 bg-gray-100">
+            <tr className="h-[35px]">
               {columns.map((col) => (
                 <th
                   key={col.key}
+                  className="whitespace-nowrap text-[12px] font-semibold text-gray-500 !bg-gray-200"
                   style={{
                     width: col.width,
                     minWidth: col.width,
                     ...col.style,
                   }}
-                  className="text-gray-500 font-semibold whitespace-nowrap text-[12px]"
                 >
                   {col.label}
                 </th>
@@ -74,7 +93,9 @@ const VehicleTable: React.FC<Props> = ({
             </tr>
           </thead>
 
+          {/* ── Table Body ── */}
           <tbody>
+            {/* Loading State */}
             {isLoading
               ? skeletonRows.map((_, i) => (
                   <tr key={i}>
@@ -85,6 +106,8 @@ const VehicleTable: React.FC<Props> = ({
                     ))}
                   </tr>
                 ))
+
+              /* Data State */
               : data.map((row) => (
                   <tr
                     key={row.id}
@@ -99,7 +122,9 @@ const VehicleTable: React.FC<Props> = ({
                           minWidth: col.width,
                         }}
                       >
-                        {col.render ? col.render(row) : row[col.key]}
+                        {col.render
+                          ? col.render(row)
+                          : row[col.key]}
                       </td>
                     ))}
                   </tr>
@@ -108,28 +133,34 @@ const VehicleTable: React.FC<Props> = ({
         </table>
       </div>
 
-      {/* ✅ FOOTER (ROWS PER PAGE DROPDOWN) */}
-      <div className="flex justify-end items-center gap-2 mt-2">
-  <span className="text-[14px] text-gray-500">Rows per page</span>
-  <div className="relative inline-flex items-center">
-    <select
-      value={rowsPerPage || 10}
-      onChange={(e) => onRowsPerPageChange?.(Number(e.target.value))}
-      className="appearance-none text-sm pl-2.5 pr-7 py-1.0 border border-gray-300 rounded-md bg-white text-gray-900 cursor-pointer outline-none text-[14px]"
-    >
-      {[5, 10, 15, 20, 25].map((size) => (
-        <option key={size} value={size}>
-          {size}
-        </option>
-      ))}
-    </select>
-    <ChevronDown
-      className="pointer-events-none absolute right-2 text-gray-400"
-      size={20}
-      // strokeWidth={1.5}
-    />
-  </div>
-</div>
+      {/* ───────────────── Footer (Pagination Control) ───────────────── */}
+      <div className="mt-2 flex items-center justify-end gap-2">
+        <span className="text-[14px] text-gray-500">
+          Rows per page
+        </span>
+
+        <div className="relative inline-flex items-center">
+          <select
+            value={rowsPerPage || 10}
+            onChange={(e) =>
+              onRowsPerPageChange?.(Number(e.target.value))
+            }
+            className="cursor-pointer appearance-none rounded-md border border-gray-300 bg-white px-6 py-1 text-[14px] text-gray-900 outline-none"
+          >
+            {ROW_PER_PAGE?.map((size: number) => (
+              <option key={size} value={size}>
+                {size}
+              </option>
+            ))}
+          </select>
+
+          {/* dropdown icon */}
+          <ChevronDown
+            className="pointer-events-none absolute right-2 text-gray-400"
+            size={18}
+          />
+        </div>
+      </div>
     </div>
   );
 };

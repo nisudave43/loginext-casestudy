@@ -1,11 +1,18 @@
-import getAxiosInstance from '../apis/getAxiosInstance';
+import getAxiosInstance from "../apis/getAxiosInstance";
 
-// API call for zip code search
+/**
+ * Fetches system/statistics data from backend API
+ * 
+ * Endpoint: GET /statistics
+ * 
+ * @returns Promise resolving to statistics data (already unwrapped by interceptor)
+ */
 const getStatistics = async () => {
+  // Create a fresh Axios instance for this request
+  const instance = getAxiosInstance();
 
-    const instance = getAxiosInstance();
-
-    return instance.get('/statistics');
+  // Call statistics API endpoint
+  return instance.get("/statistics");
 };
 
 export default getStatistics;
