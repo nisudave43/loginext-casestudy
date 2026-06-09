@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
 import StatusBadge from "../components/Badge";
 import Heading from "../components/Heading";
 import Filters from "../components/Filters";
 import { STATUS_MAP } from "../constants/status";
 import VehicleTable from "./VehicleTable";
+import VehicleModal from "../components/VehicleModal";
+
 export const vehicles = [
   { id: "FL-001", driver: "John Smith", status: "delivered", speed: "0 mph", dest: "Residential Complex A", eta: "—", updated: "19/08/2025 14:40", coords: "37.7579, -122.4349", phone: "+12493369604", battery: 30, fuel: 44 },
   { id: "FL-002", driver: "Maria Garcia", status: "delivered", speed: "12 mph", dest: "Federal Downtown", eta: "5 min", updated: "19/08/2025 14:41", coords: "37.7945, -122.4033", phone: "+14153456789", battery: 72, fuel: 61 },
@@ -37,144 +39,6 @@ export const vehicles = [
   { id: "FL-025", driver: "Jack Wright", status: "idle", speed: "0 mph", dest: "Depot Station", eta: "—", updated: "19/08/2025 14:40", coords: "37.8112, -122.4412", phone: "+14153451223", battery: 62, fuel: 66 },
 ];
 
-const FILTER_BTNS = [
-  { key: "all",       label: "All",       activeClass: "btn-primary"   },
-  { key: "delivered", label: "Delivered", activeClass: "btn-success"   },
-  { key: "enroute",   label: "En route",  activeClass: "btn-warning"   },
-  { key: "idle",      label: "Idle",      activeClass: "btn-secondary" },
-];
-
-function LiveDot() {
-  return (
-    <span
-      className="d-inline-block rounded-circle bg-success me-1"
-      style={{ width: 7, height: 7, animation: "livepulse 1.5s infinite" }}
-    />
-  );
-}
-
-
-function ProgressBar({ value, colorClass }) {
-  return (
-    <>
-      <div className="progress mt-1" style={{ height: 5 }}>
-        <div
-          className={`progress-bar ${colorClass}`}
-          role="progressbar"
-          style={{ width: `${value}%` }}
-          aria-valuenow={value}
-          aria-valuemin={0}
-          aria-valuemax={100}
-        />
-      </div>
-      <small className="text-muted">{value}%</small>
-    </>
-  );
-}
-
-/* ── Modal (plain Bootstrap 5 markup, triggered via JS API) ─────── */
-
-function VehicleModal({ vehicle, onClose }) {
-  useEffect(() => {
-    const el = document.getElementById("vehicleModal");
-    if (!el) return;
-    // bootstrap global loaded via bundle in index.js
-    const modal = window.bootstrap?.Modal.getOrCreateInstance(el);
-    if (vehicle) {
-      modal?.show();
-    } else {
-      modal?.hide();
-    }
-  }, [vehicle]);
-
-  // Keep last vehicle in DOM while modal animates out
-  const v = vehicle;
-
-  return (
-    <div
-      className="modal fade"
-      id="vehicleModal"
-      tabIndex={-1}
-      aria-labelledby="vehicleModalLabel"
-      aria-hidden="true"
-      onHide={onClose}
-    >
-      <div className="modal-dialog modal-dialog-centered">
-        <div className="modal-content">
-
-          <div className="modal-header py-2 px-3">
-            <h5 className="modal-title" id="vehicleModalLabel" style={{ fontSize: 15 }}>
-              <span className="text-primary fw-semibold">{v?.id}</span>
-              <span className="text-muted ms-2" style={{ fontSize: 12 }}>
-                {v?.id} · {STATUS_MAP[v?.status]?.label}
-              </span>
-            </h5>
-            <button
-              type="button"
-              className="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-              onClick={onClose}
-            />
-          </div>
-
-          <div className="modal-body px-3 py-3">
-            <div className="row g-3">
-
-              <div className="col-6">
-                <div className="text-uppercase text-muted mb-1" style={{ fontSize: 10, letterSpacing: "0.05em" }}>Status</div>
-                <div><StatusBadge status={v?.status} /></div>
-              </div>
-              <div className="col-6">
-                <div className="text-uppercase text-muted mb-1" style={{ fontSize: 10, letterSpacing: "0.05em" }}>Current speed</div>
-                <div className="fw-semibold" style={{ fontSize: 13 }}>{v?.speed}</div>
-              </div>
-
-              <div className="col-6">
-                <div className="text-uppercase text-muted mb-1" style={{ fontSize: 10, letterSpacing: "0.05em" }}>Driver</div>
-                <div className="fw-semibold" style={{ fontSize: 13 }}>{v?.driver}</div>
-              </div>
-              <div className="col-6">
-                <div className="text-uppercase text-muted mb-1" style={{ fontSize: 10, letterSpacing: "0.05em" }}>Phone</div>
-                <div className="fw-semibold text-primary" style={{ fontSize: 13 }}>{v?.phone}</div>
-              </div>
-
-              <div className="col-6">
-                <div className="text-uppercase text-muted mb-1" style={{ fontSize: 10, letterSpacing: "0.05em" }}>Destination</div>
-                <div className="fw-semibold" style={{ fontSize: 13 }}>{v?.dest}</div>
-              </div>
-              <div className="col-6">
-                <div className="text-uppercase text-muted mb-1" style={{ fontSize: 10, letterSpacing: "0.05em" }}>GPS location</div>
-                <div className="fw-semibold" style={{ fontSize: 12 }}>{v?.coords}</div>
-              </div>
-
-              <div className="col-6">
-                <div className="text-uppercase text-muted mb-1" style={{ fontSize: 10, letterSpacing: "0.05em" }}>Battery level</div>
-                <ProgressBar value={v?.battery ?? 0} colorClass={v?.battery < 30 ? "bg-danger" : "bg-primary"} />
-              </div>
-              <div className="col-6">
-                <div className="text-uppercase text-muted mb-1" style={{ fontSize: 10, letterSpacing: "0.05em" }}>Fuel level</div>
-                <ProgressBar value={v?.fuel ?? 0} colorClass={v?.fuel < 30 ? "bg-danger" : "bg-success"} />
-              </div>
-
-              <div className="col-12">
-                <div className="text-uppercase text-muted mb-1" style={{ fontSize: 10, letterSpacing: "0.05em" }}>Last update</div>
-                <div className="fw-semibold" style={{ fontSize: 13 }}>{v?.updated}</div>
-              </div>
-
-            </div>
-          </div>
-
-          <div className="modal-footer py-2 px-3 justify-content-start">
-            <button type="button" className="btn btn-sm btn-outline-primary">📍 Track on map</button>
-            <button type="button" className="btn btn-sm btn-outline-secondary ms-2">📞 Call driver</button>
-          </div>
-
-        </div>
-      </div>
-    </div>
-  );
-}
 
 /* ── Dashboard ────────────────────────────────────────────────── */
 
@@ -221,7 +85,10 @@ export default function FleetDashboard() {
         title="Vehicles"
         count={filtered.length}
         data={filtered}
-        onRowClick={(v) => setSelected(v)}
+        onRowClick={(v) => {
+            console.log(v)
+            setSelected(v)
+        }}
         columns={[
           {
             key: "id",
@@ -285,7 +152,11 @@ export default function FleetDashboard() {
        
       </div>
 
-      <VehicleModal vehicle={selected} onClose={() => setSelected(null)} />
+    {
+        selected && selected?.id &&
+        <VehicleModal vehicle={selected} onClose={() => setSelected(null)} />
+    }
+      
     </>
   );
 }
