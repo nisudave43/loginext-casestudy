@@ -195,7 +195,6 @@ export default function FleetDashboard() {
       },
 
       onSuccess: (response) => {
-        console.log("Vehicle detail:", response);
         setSelectedVehicle(response);
       },
 
