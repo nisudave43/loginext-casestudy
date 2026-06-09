@@ -71,7 +71,7 @@ const VehicleTable: React.FC<Props> = ({
       </div>
 
       {/* ───────────────── Table ───────────────── */}
-      <div className="max-h-[700px] overflow-auto rounded border bg-white">
+      <div className="max-h-[700px] overflow-x-auto overflow-y-auto rounded border bg-white">
         <table className="table table-hover table-sm mb-0 w-full align-middle text-[13px]">
 
           {/* ── Table Header ── */}
@@ -79,15 +79,15 @@ const VehicleTable: React.FC<Props> = ({
             <tr className="h-[35px]">
               {columns.map((col) => (
                 <th
-                  key={col.key}
+                  key={col?.key}
                   className="whitespace-nowrap text-[12px] font-semibold text-gray-500 !bg-gray-200"
                   style={{
-                    width: col.width,
-                    minWidth: col.width,
+                    width: col?.width,
+                    minWidth: col?.width,
                     ...col.style,
                   }}
                 >
-                  {col.label}
+                  {col?.label}
                 </th>
               ))}
             </tr>
@@ -99,8 +99,8 @@ const VehicleTable: React.FC<Props> = ({
             {isLoading
               ? skeletonRows.map((_, i) => (
                   <tr key={i}>
-                    {columns.map((col) => (
-                      <td key={col.key}>
+                    {columns?.map((col) => (
+                      <td key={col?.key}>
                         <Skeleton height={14} width="80%" />
                       </td>
                     ))}
@@ -108,27 +108,41 @@ const VehicleTable: React.FC<Props> = ({
                 ))
 
               /* Data State */
-              : data.map((row) => (
-                  <tr
-                    key={row.id}
-                    onClick={() => onRowClick?.(row)}
-                    className="cursor-pointer hover:bg-gray-100"
-                  >
-                    {columns.map((col) => (
-                      <td
-                        key={col.key}
-                        style={{
-                          width: col.width,
-                          minWidth: col.width,
-                        }}
-                      >
-                        {col.render
-                          ? col.render(row)
-                          : row[col.key]}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
+             : data?.length === 0 ? (
+              // Empty State
+              <tr>
+                <td
+                  colSpan={columns.length}
+                  className="py-12 text-center text-[13px] text-gray-400"
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    <span style={{ fontSize: 28 }}>🚛</span>
+                    <span>No vehicles found</span>
+                  </div>
+                </td>
+              </tr>
+            ) : (
+              /* Data State */
+              data?.map((row) => (
+                <tr
+                  key={row?.id}
+                  onClick={() => onRowClick?.(row)}
+                  className="cursor-pointer hover:bg-gray-100"
+                >
+                  {columns.map((col) => (
+                    <td
+                      key={col?.key}
+                      style={{
+                        width: col?.width,
+                        minWidth: col?.width,
+                      }}
+                    >
+                      {col?.render ? col?.render(row) : row[col.key]}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

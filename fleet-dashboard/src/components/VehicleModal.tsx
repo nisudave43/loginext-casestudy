@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import {
   X,
   Truck,
@@ -11,32 +12,11 @@ import {
   Fuel,
   Clock,
 } from "lucide-react";
-
+import { STATUS_MAP } from '../constants/config';
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 
-/* ─────────────────────────────────────────────
-   Status Configuration Map
-   - Maps API status → UI label + badge color
-───────────────────────────────────────────── */
-const STATUS_MAP = {
-  delivered: {
-    label: "DELIVERED",
-    color: "bg-emerald-100 text-emerald-800",
-  },
-  in_transit: {
-    label: "IN TRANSIT",
-    color: "bg-blue-100 text-blue-800",
-  },
-  idle: {
-    label: "IDLE",
-    color: "bg-gray-100 text-gray-700",
-  },
-  offline: {
-    label: "OFFLINE",
-    color: "bg-red-100 text-red-700",
-  },
-};
+
 
 /* ─────────────────────────────────────────────
    Progress Bar (Battery / Fuel)
@@ -117,38 +97,48 @@ const VehicleModal = ({
 }: VehicleModalProps) => {
   const isLoadingState = isLoading || !vehicle;
 
+  
+  useEffect(() => {
+    document.body.style.overflow = "hidden"; // disable scroll when modal opens
+
+    return () => {
+      document.body.style.overflow = ""; // restore on close
+    };
+  }, []);
+  
   // prevent crash early
   if (!vehicle) return null;
 
+
   /* ── Normalize API → UI model ── */
   const v = {
-    id: vehicle.vehicleNumber ?? vehicle.id,
-    driver: vehicle.driverName,
-    phone: vehicle.driverPhone,
-    status: vehicle.status,
-    dest: vehicle.destination,
-    coords: vehicle.currentLocation
-      ? `${vehicle.currentLocation.lat}, ${vehicle.currentLocation.lng}`
+    id: vehicle?.vehicleNumber ?? vehicle.id ?? '',
+    driver: vehicle?.driverName || '',
+    phone: vehicle?.driverPhone || '',
+    status: vehicle?.status || '',
+    dest: vehicle?.destination || '',
+    coords: vehicle?.currentLocation
+      ? `${vehicle?.currentLocation?.lat}, ${vehicle?.currentLocation?.lng}`
       : "-",
-    speed: vehicle.speed ?? 0,
-    battery: vehicle.batteryLevel ?? 0,
-    fuel: vehicle.fuelLevel ?? 0,
-    lastUpdated: vehicle.lastUpdated
+    speed: vehicle?.speed ?? 0,
+    battery: vehicle?.batteryLevel ?? 0,
+    fuel: vehicle?.fuelLevel ?? 0,
+    lastUpdated: vehicle?.lastUpdated
       ? new Date(vehicle.lastUpdated).toLocaleString()
       : "-",
   };
 
   /* ── Status UI mapping ── */
   const statusInfo =
-    STATUS_MAP[v.status as keyof typeof STATUS_MAP] ?? {
-      label: v.status?.toUpperCase(),
+    STATUS_MAP[v?.status as keyof typeof STATUS_MAP] ?? {
+      label: v?.status?.toUpperCase(),
       color: "bg-gray-100 text-gray-700",
     };
 
   /* ── Dynamic colors ── */
-  const fuelColor = v.fuel < 25 ? "red" : v.fuel < 50 ? "amber" : "blue";
+  const fuelColor = v?.fuel < 25 ? "red" : v?.fuel < 50 ? "amber" : "blue";
   const battColor =
-    v.battery < 25 ? "red" : v.battery < 50 ? "amber" : "blue";
+    v?.battery < 25 ? "red" : v?.battery < 50 ? "amber" : "blue";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -159,7 +149,7 @@ const VehicleModal = ({
       />
 
       {/* Modal Container */}
-      <div className="relative z-10 w-[550px] overflow-hidden rounded-2xl bg-white shadow-xl">
+      <div className="relative z-10 h-[90svh] sm:h-auto w-[550px] overflow-hidden rounded-2xl bg-white shadow-xl">
         
         {/* ── Header ── */}
         <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
@@ -173,7 +163,7 @@ const VehicleModal = ({
                 <Skeleton width={120} height={18} />
               ) : (
                 <span className="text-xl font-bold text-gray-900">
-                  {v.id}
+                  {v?.id}
                 </span>
               )}
             </div>
@@ -186,9 +176,9 @@ const VehicleModal = ({
                 <Skeleton width={160} height={12} />
               ) : (
                 <>
-                  <span>{v.driver}</span>
+                  <span>{v?.driver}</span>
                   <span>•</span>
-                  <span>{statusInfo.label}</span>
+                  <span>{statusInfo?.label}</span>
                 </>
               )}
             </div>
@@ -215,7 +205,7 @@ const VehicleModal = ({
               <span
                 className={`inline-block rounded-full px-2.5 py-0.5 text-sm font-medium ${statusInfo.color}`}
               >
-                ✓ {statusInfo.label}
+                ✓ {statusInfo?.label}
               </span>
             )}
           </InfoCard>
@@ -225,7 +215,7 @@ const VehicleModal = ({
             {isLoadingState ? (
               <Skeleton width={60} height={20} />
             ) : (
-              <p className="text-xl font-medium">{v.speed}</p>
+              <p className="text-xl font-medium">{v?.speed}</p>
             )}
           </InfoCard>
 
@@ -265,7 +255,7 @@ const VehicleModal = ({
               </>
             ) : (
               <p className="whitespace-pre-line text-sm">
-                {v.coords.replace(", ", ",\n")}
+                {v?.coords.replace(", ", ",\n")}
               </p>
             )}
           </InfoCard>
@@ -279,8 +269,8 @@ const VehicleModal = ({
               </>
             ) : (
               <>
-                <p className="text-lg font-medium">{v.battery}%</p>
-                <ProgressBar value={v.battery} color={battColor} />
+                <p className="text-lg font-medium">{v?.battery}%</p>
+                <ProgressBar value={v?.battery} color={battColor} />
               </>
             )}
           </InfoCard>
@@ -294,8 +284,8 @@ const VehicleModal = ({
               </>
             ) : (
               <>
-                <p className="text-lg font-medium">{v.fuel}%</p>
-                <ProgressBar value={v.fuel} color={fuelColor} />
+                <p className="text-lg font-medium">{v?.fuel}%</p>
+                <ProgressBar value={v?.fuel} color={fuelColor} />
               </>
             )}
           </InfoCard>
@@ -306,7 +296,7 @@ const VehicleModal = ({
               {isLoadingState ? (
                 <Skeleton width={140} height={16} />
               ) : (
-                v.lastUpdated
+                v?.lastUpdated
               )}
             </InfoCard>
           </div>

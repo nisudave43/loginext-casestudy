@@ -53,8 +53,8 @@ export default function FleetDashboard() {
   ───────────────────────────────────────────────────────────── */
   const vehicleQueryKey = [
     "vehicles",
-    tableFilter.status,
-    tableFilter.limit,
+    tableFilter?.status,
+    tableFilter?.limit,
   ];
 
   const {
@@ -85,19 +85,19 @@ export default function FleetDashboard() {
       };
 
       ws.onmessage = (event) => {
-        const message = JSON.parse(event.data);
+        const message = JSON.parse(event?.data);
 
-        if (message.timestamp) {
-          setLastWsTimestamp(message.timestamp);
+        if (message?.timestamp) {
+          setLastWsTimestamp(message?.timestamp);
         }
 
-        if (message.type === "VEHICLE_UPDATE") {
-          const updated = message.payload;
+        if (message?.type === "VEHICLE_UPDATE") {
+          const updated = message?.payload;
 
-          if (tableFilter.limit >= 25) {
+          if (tableFilter?.limit >= 25) {
             queryClient.setQueryData(vehicleQueryKey, (old: any[] = []) =>
               old.map((v) =>
-                v.vehicleNumber === updated.vehicleNumber
+                v.vehicleNumber === updated?.vehicleNumber
                   ? { ...v, ...updated }
                   : v
               )
@@ -106,13 +106,13 @@ export default function FleetDashboard() {
             const currentData =
               (queryClient.getQueryData(vehicleQueryKey) as any[]) || [];
             const existsInView = currentData.some(
-              (v) => v.vehicleNumber === updated.vehicleNumber
+              (v) => v?.vehicleNumber === updated?.vehicleNumber
             );
 
             if (existsInView) {
               queryClient.setQueryData(vehicleQueryKey, (old: any[] = []) =>
                 old.map((v) =>
-                  v.vehicleNumber === updated.vehicleNumber
+                  v?.vehicleNumber === updated?.vehicleNumber
                     ? { ...v, ...updated }
                     : v
                 )
@@ -156,25 +156,25 @@ export default function FleetDashboard() {
      Transform API Data → Table Format
   ───────────────────────────────────────────────────────────── */
   const tableData = vehicles?.map((v: any) => ({
-    id: v.vehicleNumber,
-    driver: v.driverName,
-    status: v.status,
-    speed: `${v.speed} mph`,
-    dest: v.destination,
+    id: v?.vehicleNumber || '',
+    driver: v?.driverName || '',
+    status: v?.status || '',
+    speed: `${v?.speed || 0} mph`,
+    dest: v?.destination || '',
 
-    eta: v.estimatedArrival
-      ? new Date(v.estimatedArrival).toLocaleTimeString([], {
+    eta: v?.estimatedArrival
+      ? new Date(v?.estimatedArrival)?.toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
         })
       : "—",
 
-    updated: new Date(v.lastUpdated).toLocaleTimeString([], {
+    updated: new Date(v?.lastUpdated)?.toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
     }),
 
-    coords: `${v.currentLocation?.lat?.toFixed(4)}, ${v.currentLocation?.lng?.toFixed(4)}`,
+    coords: `${v?.currentLocation?.lat?.toFixed(4)}, ${v?.currentLocation?.lng?.toFixed(4)}`,
 
     raw: v,
   }));
@@ -208,21 +208,13 @@ export default function FleetDashboard() {
   ───────────────────────────────────────────────────────────── */
   return (
     <>
-      {/* Live pulse animation */}
-      <style>{`
-        @keyframes livepulse {
-          0%,100%{opacity:1}
-          50%{opacity:.35}
-        }
-      `}</style>
-
-      <div className="d-flex gap-3 p-3 bg-white min-vh-100">
+      <div className="d-flex gap-3 p-2 mt-2 lg:p-4 bg-white min-vh-100">
         <div className="w-full">
           <Heading />
 
-          <div className="flex gap-4 w-full">
+          <div className="flex flex-col lg:flex-row gap-4 w-full">
             {/* ── Filters Panel ── */}
-            <div className="w-[35%] mt-4 shrink-0">
+            <div className="w-full lg:w-[35%] mt-4 shrink-0">
               <Filters
                 stats={
                   stats ?? {
@@ -234,7 +226,7 @@ export default function FleetDashboard() {
                     timestamp: "",
                   }
                 }
-                filter={tableFilter.status}
+                filter={tableFilter?.status}
                 setFilter={(status) =>
                   setTableFilter((prev) => ({
                     ...prev,
@@ -247,7 +239,7 @@ export default function FleetDashboard() {
             </div>
 
             {/* Divider */}
-            <div className="w-px self-stretch bg-gray-200" />
+            <div className="hidden lg:block w-px self-stretch bg-gray-200" />
 
             {/* ── Table Panel ── */}
             <div className="flex-1 min-w-0 mt-2">
@@ -256,7 +248,7 @@ export default function FleetDashboard() {
                 data={tableData}
                 count={tableData?.length || 0}
                 isLoading={isVehiclesLoading || isVehiclesFetching}
-                rowsPerPage={tableFilter.limit}
+                rowsPerPage={tableFilter?.limit}
                 onRowsPerPageChange={(limit) =>
                   setTableFilter((prev) => ({
                     ...prev,
@@ -273,8 +265,8 @@ export default function FleetDashboard() {
                     label: "Vehicle",
                     width: 120,
                     render: (v) => (
-                      <span className="text-primary fw-semibold underline">
-                        {v.id}
+                      <span className="text-primary fw-semibold underline ml-1">
+                        {v?.id}
                       </span>
                     ),
                   },
@@ -299,7 +291,7 @@ export default function FleetDashboard() {
                        <span
                         className={`inline-flex items-center rounded-md px-2 py-1 text-[11px] font-bold bg-gray-100 text-gray-800`}
                       >
-                        {v.speed}
+                        {v?.speed}
                       </span>
                     ),
                   },
@@ -321,7 +313,7 @@ export default function FleetDashboard() {
                       <span
                         className="text-muted text-[12px]"
                       >
-                        {v.updated}
+                        {v?.updated}
                       </span>
                     ),
                   },
@@ -331,7 +323,7 @@ export default function FleetDashboard() {
                     width: 180,
                     render: (v) => (
                       <span className="text-[12px]">
-                        {v.coords}
+                        {v?.coords}
                       </span>
                     ),
                   },

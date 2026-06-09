@@ -81,7 +81,7 @@ const Filters = ({
 
         <div className="grid grid-cols-2 gap-3">
           {FILTER_BTNS.map((btn) => {
-            const isActive = filter === btn.key;
+            const isActive = filter === btn?.key;
 
             // Count from stats dynamically
             const count = isLoading
@@ -92,7 +92,7 @@ const Filters = ({
             if (isLoading) {
               return (
                 <div
-                  key={btn.key}
+                  key={btn?.key}
                   className="rounded-md border-2 border-gray-200 p-2"
                 >
                   <Skeleton height={14} width="80%" />
@@ -103,9 +103,9 @@ const Filters = ({
             /* ── Filter button ── */
             return (
               <button
-                key={btn.key}
+                key={btn?.key}
                 type="button"
-                onClick={() => setFilter(btn.key)}
+                onClick={() => setFilter(btn?.key)}
                 className={`flex items-center gap-1.5 !rounded-md border-2 px-1.5 py-1.5 !text-[14px] leading-tight transition-all !text-bold ${
                   isActive
                     ? "border-blue-400 text-blue-500"
@@ -117,7 +117,7 @@ const Filters = ({
 
                 {/* label */}
                 <span className="max-w-[80px] truncate">
-                  {btn.label}
+                  {btn?.label}
                 </span>
 
                 {/* count */}
@@ -151,28 +151,28 @@ const Filters = ({
         <div className="grid grid-cols-2 gap-2">
           <StatCard
             isLoading={isLoading}
-            value={safeStats.total}
+            value={safeStats?.total}
             label="Total Vehicles"
             icon={<Truck size={12} />}
           />
 
           <StatCard
             isLoading={isLoading}
-            value={safeStats.en_route}
+            value={safeStats?.en_route}
             label="En Route"
             icon={<Route size={12} />}
           />
 
           <StatCard
             isLoading={isLoading}
-            value={safeStats.idle}
+            value={safeStats?.idle}
             label="Idle"
             icon={<Clock3 size={12} />}
           />
 
           <StatCard
             isLoading={isLoading}
-            value={safeStats.delivered}
+            value={safeStats?.delivered}
             label="Delivered"
             icon={<CheckCircle2 size={12} />}
           />

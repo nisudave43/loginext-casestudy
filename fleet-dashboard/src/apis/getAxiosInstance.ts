@@ -23,7 +23,7 @@ const getAxiosInstance = () => {
     withCredentials: false,
 
     // Request timeout (ms)
-    timeout: 5000,
+    timeout: 10000,
 
     // Default headers for all requests
     headers: {

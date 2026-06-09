@@ -15,13 +15,13 @@ function StatusBadge({ status }: StatusBadgeProps) {
    */
   const config =
     (status && STATUS_MAP[status as keyof typeof STATUS_MAP]) ||
-    STATUS_MAP.idle;
+    STATUS_MAP?.idle;
 
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2 py-1 text-[11px] font-medium ${config.className}`}
+      className={`inline-flex items-center rounded-full px-2 py-1 text-[11px] font-medium ${config?.className}`}
     >
-      {config.label}
+      {config?.label}
     </span>
   );
 }
