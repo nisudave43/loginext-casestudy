@@ -91,44 +91,49 @@ export default function FleetDashboard() {
           setLastWsTimestamp(message?.timestamp);
         }
 
-        if (message?.type === "VEHICLE_UPDATE") {
-          const updated = message?.payload;
+        const type = message?.type?.toLowerCase();
 
-          if (tableFilter?.limit >= 25) {
-            queryClient.setQueryData(vehicleQueryKey, (old: any[] = []) =>
-              old.map((v) =>
-                v.vehicleNumber === updated?.vehicleNumber
-                  ? { ...v, ...updated }
-                  : v
-              )
-            );
-          } else {
-            const currentData =
-              (queryClient.getQueryData(vehicleQueryKey) as any[]) || [];
-            const existsInView = currentData.some(
-              (v) => v?.vehicleNumber === updated?.vehicleNumber
-            );
+       if (type === "vehicle_update") {
+          const updates: any[] = message?.data ?? [];
 
-            if (existsInView) {
-              queryClient.setQueryData(vehicleQueryKey, (old: any[] = []) =>
-                old.map((v) =>
-                  v?.vehicleNumber === updated?.vehicleNumber
-                    ? { ...v, ...updated }
-                    : v
-                )
-              );
-            } else {
-              queryClient.invalidateQueries({ queryKey: vehicleQueryKey });
-            }
+          queryClient.setQueryData(vehicleQueryKey, (old: any[] = []) =>
+            old.map((v) => {
+              const updated = updates.find((u) => u?.vehicleNumber === v.vehicleNumber);
+              return updated ? { ...v, ...updated } : v;
+            })
+          );
+
+          if (tableFilter?.limit < 25) {
+            const currentData = (queryClient.getQueryData(vehicleQueryKey) as any[]) || [];
+            const allExist = updates.every((u) =>
+              currentData.some((v) => v?.vehicleNumber === u?.vehicleNumber)
+            );
+            if (!allExist) queryClient.invalidateQueries({ queryKey: vehicleQueryKey });
           }
         }
 
-        if (message.type === "VEHICLE_CREATE") {
-          queryClient.invalidateQueries({ queryKey: vehicleQueryKey });
+        if (type === "vehicle_create") {
+  const newVehicle = message?.data;
+
+  queryClient.setQueryData(vehicleQueryKey, (old: any[] = []) =>
+    [...old, newVehicle]
+  );
+
+  if (tableFilter?.limit < 25) {
+    queryClient.invalidateQueries({ queryKey: vehicleQueryKey });
+  }
         }
 
-        if (message.type === "VEHICLE_DELETE") {
-          queryClient.invalidateQueries({ queryKey: vehicleQueryKey });
+        if (type === "vehicle_delete") {
+          const deleted = message?.data;
+
+          queryClient.setQueryData(vehicleQueryKey, (old: any[] = []) =>
+            old.filter((v) => v?.vehicleNumber !== deleted?.vehicleNumber)
+          );
+
+          if (tableFilter?.limit < 25) {
+            queryClient.invalidateQueries({ queryKey: vehicleQueryKey });
+          }
         }
       };
 
